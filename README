@@ -20,7 +20,7 @@ server {
 		proxy_pass http://localhost:8080;
 		proxy_set_header Host $host;
 		proxy_set_header X-PlayHub-WaitStart false;
-		proxy_set_header X-PlayHub-AppPath /var/www/headaward.war;
+		proxy_set_header X-PlayHub-AppPath /var/www/playapp.war;
 		break;
 	}
 }
