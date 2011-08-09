@@ -1,10 +1,10 @@
 package org.playhub;
 
-import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.continuation.Continuation;
+import org.eclipse.jetty.continuation.ContinuationSupport;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,26 +13,25 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Service extends AbstractHandler {
-    private String host = "127.0.0.1";
+    public static final String HEADER_APP_PATH = "X-PlayHub-AppPath";
+    private static final String HEADER_WAIT_START = "X-PlayHub-WaitStart";
+
+    private String host = "0.0.0.0";
     private int port = 8080;
     private Logger log = LoggerFactory.getLogger(getClass());
-    private Map<String, WebAppContext> virtualHosts = new HashMap<String, WebAppContext>();
+    private Map<String, Application> apps = new HashMap<String, Application>();
+    private Server server;
+    private ExecutorService pool = Executors.newCachedThreadPool();
 
     public void run() {
         try {
-            Server server = new Server(new InetSocketAddress(host, port));
-
-            WebAppContext webAppContext = new WebAppContext();
-            webAppContext.setVirtualHosts(new String[]{"headaward.com"});
-            webAppContext.setWar("c:/work/startups/apps/headaward.war");
-            webAppContext.setContextPath("/");
-            webAppContext.setServer(server);
-            webAppContext.start();
-            virtualHosts.put("headaward.com", webAppContext);
-
+            server = new Server(new InetSocketAddress(host, port));
             server.setHandler(this);
             server.start();
         } catch (Exception e) {
@@ -45,24 +44,50 @@ public class Service extends AbstractHandler {
         service.run();
     }
 
+    private Application getApplication(String path) {
+        synchronized (apps) {
+            Application app = apps.get(path);
+            if (app != null && (app.isReady() || app.isInit())) return app;
+            try {
+                if (app == null) {
+                    app = new Application(path, this);
+                } else app.checkExist();
+                if (!app.isFound()) return app;
+                apps.put(path, app);
+                return app;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     public void handle(String path,
                        Request request,
                        HttpServletRequest httpServletRequest,
                        HttpServletResponse httpServletResponse)
             throws IOException, ServletException {
-
         String host = request.getHeader("host");
-        WebAppContext context = virtualHosts.get(host);
-        if (context != null) {
-            context.handle(path, request, httpServletRequest, httpServletResponse);
+        String appPath = request.getHeader(HEADER_APP_PATH);
+        boolean waitStart = Boolean.parseBoolean(request.getHeader(HEADER_WAIT_START));
+        Continuation continuation = null;
+        if (waitStart) continuation = ContinuationSupport.getContinuation(request);
+        Application application = getApplication(appPath);
+        application.start(continuation);
+        if (waitStart && application.isInit()) {
+            continuation.suspend();
+            return;
+        }
+        if (application != null && application.isReady()) {
+            application.getContext().handle
+                    (path, request, httpServletRequest, httpServletResponse);
         } else {
             request.setHandled(true);
-            for (Object headerName : Collections.list(request.getHeaderNames())) {
-                for (Object headerValue : Collections.list(request.getHeaders(headerName.toString()))) {
-                    httpServletResponse.getOutputStream().
-                            print(String.format("%s: %s", headerName, headerValue) + "\n");
-                }
-            }
+            httpServletResponse.setStatus(502);
+            httpServletResponse.getOutputStream().print("{appstatus:" + application.getStatus() + "}");
         }
+    }
+
+    public ExecutorService getPool() {
+        return pool;
     }
 }

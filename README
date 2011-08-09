@@ -1,2 +1,29 @@
-This file was created by IntelliJ IDEA 10.5.1 for binding GitHub repository
-This file was modified by IntelliJ IDEA 10.5.1 for binding GitHub repository
+== Description ==
+
+PlayHub - application server for PlayFramework based projects
+with initialization on demand.
+
+== Configure ==
+
+You need configure reverse proxy service like Nginx with next headers:
+
+- "X-PlayHub-AppPath" - path to war directory or archive
+- "X-PlayHub-WaitStart" - block request while application is starting
+
+== Example Nginx Config VirtualHost ==
+
+server {
+	listen 80;
+	server_name headaward.com;
+
+	location / {
+		proxy_pass http://localhost:8080;
+		proxy_set_header Host $host;
+		proxy_set_header X-PlayHub-WaitStart false;
+		proxy_set_header X-PlayHub-AppPath /var/www/headaward.war;
+		break;
+	}
+}
+
+
+
