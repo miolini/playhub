@@ -1,0 +1,6 @@
+Changes
+
+0.1
+
+1. adding application initialization on-demand
+2. initialization by http header from frontend webserver
