@@ -14,13 +14,13 @@ You need configure reverse proxy service like Nginx with next headers:
 
 server {
 	listen 80;
-	server_name headaward.com;
+	server_name yourapp.com;
 
 	location / {
 		proxy_pass http://localhost:8080;
 		proxy_set_header Host $host;
 		proxy_set_header X-PlayHub-WaitStart false;
-		proxy_set_header X-PlayHub-AppPath /var/www/headaward.war;
+		proxy_set_header X-PlayHub-AppPath /var/www/yourapp.war;
 		break;
 	}
 }
