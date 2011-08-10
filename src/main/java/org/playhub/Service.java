@@ -22,7 +22,7 @@ public class Service extends AbstractHandler {
     public static final String HEADER_APP_PATH = "X-PlayHub-AppPath";
     private static final String HEADER_WAIT_START = "X-PlayHub-WaitStart";
 
-    private String host = "0.0.0.0";
+    private String host = "127.0.0.1";
     private int port = 8080;
     private Logger log = LoggerFactory.getLogger(getClass());
     private Map<String, Application> apps = new HashMap<String, Application>();
