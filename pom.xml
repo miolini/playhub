@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>playhub</groupId>
     <artifactId>playhub</artifactId>
-    <version>0.1</version>
+    <version>0.2</version>
     <name>Application server for PlayFramework based applications with on-demand initialization</name>
 
     <repositories>

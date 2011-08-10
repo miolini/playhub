@@ -1,6 +1,14 @@
-Changes
+Change Log
+
+0.2
+
+- adding JVM option 'playhub.host' for choosing host binding
+- adding application observer for restarting modified or stopping
+    not used application instances
+- adding assembly jar building with all dependencies
+- adding building as executable jar file
 
 0.1
 
-1. adding application initialization on-demand
-2. initialization by http header from frontend webserver
+- adding application initialization on-demand
+- initialization by http header from frontend webserver
