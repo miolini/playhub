@@ -2,18 +2,18 @@ package org.playhub;
 
 import org.eclipse.jetty.continuation.Continuation;
 
-public class ApplicationStarter implements Runnable {
+public class ApplicationRestarter implements Runnable {
     private Application app;
 
-    public ApplicationStarter(Application app) {
+    public ApplicationRestarter(Application app) {
         this.app = app;
     }
 
     public void run() {
         try {
+            app.getContext().stop();
             app.getContext().start();
             app.setStatus(ApplicationStatus.READY);
-            app.storeAccess();
             for(Continuation continuation : app.getContinuations()) {
                 continuation.resume();
             }

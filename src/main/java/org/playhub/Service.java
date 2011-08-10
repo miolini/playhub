@@ -29,9 +29,12 @@ public class Service extends AbstractHandler {
     private Server server;
     private ExecutorService pool = Executors.newCachedThreadPool();
     private static final String PROP_HOST = "playhub.host";
+    private ApplicationObserver appObserver;
 
     public void run() {
         try {
+            appObserver = new ApplicationObserver();
+            pool.execute(appObserver);
             host = System.getProperty(PROP_HOST, host);
             server = new Server(new InetSocketAddress(host, port));
             server.setHandler(this);
@@ -53,6 +56,7 @@ public class Service extends AbstractHandler {
             try {
                 if (app == null) {
                     app = new Application(path, this);
+                    appObserver.add(app);
                 } else app.checkExist();
                 if (!app.isFound()) return app;
                 apps.put(path, app);
@@ -80,6 +84,7 @@ public class Service extends AbstractHandler {
             return;
         }
         if (application != null && application.isReady()) {
+            application.storeAccess();
             application.getContext().handle
                     (path, request, httpServletRequest, httpServletResponse);
         } else {

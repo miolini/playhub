@@ -14,6 +14,9 @@ public class Application {
     private ApplicationStatus status;
     private WebAppContext context;
     private List<Continuation> continuations = new ArrayList<Continuation>();
+    private long lastModified;
+    private long lastAccess;
+    private Object timeFromLastAccess;
 
     public Application(String path, Service service) {
         this.path = new File(path);
@@ -31,7 +34,14 @@ public class Application {
         if (!this.path.exists()) {
             if (isReady())
                 status = ApplicationStatus.NOTFOUND;
-        } else status = null;
+        } else {
+            if (status == ApplicationStatus.NOTFOUND) status = null;
+            lastModified = path.lastModified();
+        }
+    }
+
+    public boolean isModified() {
+        return path.lastModified() != lastModified;
     }
 
     public File getPath() {
@@ -67,8 +77,9 @@ public class Application {
     }
 
     public void start(Continuation continuation) {
-        if (continuation != null && isInit()) continuations.add(continuation);
-        if (status == null) {
+        if (continuation != null && !isReady())
+            continuations.add(continuation);
+        if (status == null || status == ApplicationStatus.STOPPED) {
             status = ApplicationStatus.INIT;
             pool.execute(new ApplicationStarter(this));
         }
@@ -84,5 +95,19 @@ public class Application {
 
     public List<Continuation> getContinuations() {
         return continuations;
+    }
+
+    public void restart() {
+        this.lastModified = path.lastModified();
+        status = ApplicationStatus.INIT;
+        pool.execute(new ApplicationRestarter(this));
+    }
+
+    public void storeAccess() {
+        if (isReady()) lastAccess = System.currentTimeMillis();
+    }
+
+    public long getTimeFromLastAccess() {
+        return lastAccess > 0 ? System.currentTimeMillis() - lastAccess : 0;
     }
 }
