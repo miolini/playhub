@@ -18,13 +18,12 @@ public class ApplicationObserver implements Runnable {
             synchronized (apps) {
                 for (Application app : apps) {
                     if (!app.isReady()) continue;
-                    if (app.isModified()) {
-                        log.info(String.format("app %s is modified - restarting", app.getPath().getName()));
-                        app.restart();
-                    }
-                    else if (app.isReady() && app.getTimeFromLastAccess() > LIFETIME) {
+                    if (app.isReady() && (app.getTimeFromLastAccess() > LIFETIME || !app.isFound())) {
                         log.info(String.format("app %s will be shutdown now", app.getPath()));
                         app.stop();
+                    } else if (app.isModified()) {
+                        log.info(String.format("app %s is modified - restarting", app.getPath().getName()));
+                        app.restart();
                     }
                 }
             }
