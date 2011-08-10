@@ -1,6 +1,7 @@
 package org.playhub;
 
 import org.eclipse.jetty.continuation.Continuation;
+import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import java.io.File;
@@ -17,17 +18,21 @@ public class Application {
     private long lastModified;
     private long lastAccess;
     private Object timeFromLastAccess;
+    private Server server;
 
     public Application(String path, Service service) {
         this.path = new File(path);
         this.pool = service.getPool();
         checkExist();
         if (!isFound()) return;
+        server = service.getServer();
+    }
 
+    private void openApplication() {
         context = new WebAppContext();
-        context.setWar(path);
+        context.setWar(path.getAbsolutePath());
         context.setContextPath("/");
-        context.setServer(service.getServer());
+        context.setServer(server);
     }
 
     public void checkExist() {
@@ -61,6 +66,7 @@ public class Application {
     }
 
     public WebAppContext getContext() {
+        if (context == null) openApplication();
         return context;
     }
 

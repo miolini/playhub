@@ -11,6 +11,7 @@ public class ApplicationStopper implements Runnable {
         try {
             app.setStatus(ApplicationStatus.STOPPING);
             app.getContext().stop();
+            app.setContext(null);
             app.setStatus(ApplicationStatus.STOPPED);
         } catch (Exception e) {
             app.setContext(null);
