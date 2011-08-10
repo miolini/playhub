@@ -28,9 +28,11 @@ public class Service extends AbstractHandler {
     private Map<String, Application> apps = new HashMap<String, Application>();
     private Server server;
     private ExecutorService pool = Executors.newCachedThreadPool();
+    private static final String PROP_HOST = "playhub.host";
 
     public void run() {
         try {
+            host = System.getProperty(PROP_HOST, host);
             server = new Server(new InetSocketAddress(host, port));
             server.setHandler(this);
             server.start();

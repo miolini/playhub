@@ -7,7 +7,7 @@
     <groupId>playhub</groupId>
     <artifactId>playhub</artifactId>
     <version>0.1</version>
-    <name>Maven Default Project</name>
+    <name>Application server for PlayFramework based applications with on-demand initialization</name>
 
     <repositories>
         <repository>
@@ -56,6 +56,20 @@
                 <configuration>
                     <source>1.5</source>
                     <target>1.5</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.playhub.Service</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
             </plugin>
         </plugins>
